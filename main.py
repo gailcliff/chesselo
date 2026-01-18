@@ -5,9 +5,11 @@ from dataclasses import dataclass
 class Player:
     id: str
     rating: int
+    delta: int = 0
 
     def __str__(self):
-        return f"{self.id} (elo={self.rating})"
+        delta_str = f"({'+' if self.delta >= 0 else ''}{self.delta})"
+        return f"{self.id} ELO: {self.rating} {delta_str}"
 
 win = 1
 draw = 0.5
@@ -26,6 +28,9 @@ def get_player_expectations(challenger: Player, defender: Player) -> tuple[float
 def update_elo_scores(challenger: Player, defender: Player, challenger_new_rating: int, defender_new_rating: int) -> None:
     ratings[challenger.id] = challenger_new_rating
     ratings[defender.id] = defender_new_rating
+    challenger.delta = challenger_new_rating - challenger.rating
+    defender.delta = defender_new_rating - defender.rating
+
     challenger.rating = challenger_new_rating
     defender.rating = defender_new_rating
 
@@ -47,7 +52,7 @@ def play_game(challenger: Player, defender: Player) -> int:
 def create_player(username: str, rating=1200) -> Player:
     ratings[username] = rating
 
-    return Player(username, rating)
+    return Player(username, rating, 0)
 
 
 def get_rating(player: Player):
@@ -55,12 +60,16 @@ def get_rating(player: Player):
 
 
 if __name__ == '__main__':
-    playerA = create_player("hikaru")
-    playerB = create_player("magnus", 1300)
+    playerA = create_player("hikaru", 2810)
+    playerB = create_player("magnus", 2840)
 
-    game_result = play_game(playerA, playerB)
-    print(f"Game: {playerA} vs. {playerB}")
-    print(f"Game result: {playerA.id}: {['loss', 'draw', 'wins'][int(game_result * 2)]}")
+    for i in range(20):
+        print(f"Game {i+1}: {playerA} vs. {playerB}")
+        game_result = play_game(playerA, playerB)
+        print(f"Game result: {playerA.id}: {['loss', 'draw', 'wins'][int(game_result * 2)]}")
 
-    print(f"{playerA.id} new ELO: {get_rating(playerA)}")
-    print(f"{playerB.id} new ELO: {get_rating(playerB)}")
+        print(playerA)
+        print(playerB)
+        # print(f"{playerB.id} new ELO: {get_rating(playerB)}")
+        print()
+        print()
